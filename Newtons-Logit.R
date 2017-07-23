@@ -36,3 +36,39 @@ NMReg <-function(x,y,l,tolerance, reg.intercept) {
   }
   return (theta)
 }
+
+NMLogit <- function(x,y) {
+  return(NMReg(x, y, 0, 1e-10, FALSE))
+}
+
+CompareLogits <- function(x,y) {
+  R.Done <- as.matrix(glm.fit(x, y, family = binomial(link="logit"))$coefficients)
+  NM <- NMLogit(x, y)
+  comp <- as.data.frame(cbind(R.Done, NM))
+  names(comp) <- c("GLM Logit", "Newton's Method")
+  comp$Error <- (comp$`Newton's Method` - comp$`GLM Logit`) / comp$`GLM Logit`
+  return(comp)
+  
+}
+
+Logit.LL <- function(theta, x,y, as.scalar = TRUE) {
+  return(LLReg(x,y,theta,0,0, as.scalar))
+}
+
+StandardErrors <- function(theta, x, y, epp = 1e-6) {
+  d <- abs(theta * epp)
+  h <- matrix(NA, nrow = nrow(theta), ncol = 1)
+  for (i in 1:nrow(theta)) {
+    h[i] <- max(epp, d[i])
+  }
+  Gi <- matrix(NA, nrow = nrow(X), ncol = ncol(X))
+  
+  for (i in 1:nrow(theta)) {
+    t1 <- theta
+    t2 <- theta
+    t1[i,] <- theta[i,] + h[i]
+    t2[i,] <- theta[i,] - h[i]
+    Gi[,i] <- (LLReg(X,Y,t1,0,0,FALSE) - LLReg(X,Y,t2,0,0,FALSE))/(2*h[i])
+  }
+  return( sqrt(diag(solve(t(Gi) %*% Gi))) )
+}
