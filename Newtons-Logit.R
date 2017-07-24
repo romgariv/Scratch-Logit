@@ -55,7 +55,13 @@ Logit.LL <- function(theta, x,y, as.scalar = TRUE) {
   return(LLReg(x,y,theta,0,0, as.scalar))
 }
 
-StandardErrors <- function(theta, x, y, epp = 1e-6) {
+Standard.Errors <- function(theta, x) {
+  p <- sigmoid(x, theta)
+  v <- diag(as.vector(p * (1-p)))
+  return(sqrt(diag(solve(t(x) %*% v %*% x))))
+}
+
+Numeric.Standard.Errors <- function(theta, x, y, epp = 1e-6) {
   d <- abs(theta * epp)
   h <- matrix(NA, nrow = nrow(theta), ncol = 1)
   for (i in 1:nrow(theta)) {
@@ -72,3 +78,10 @@ StandardErrors <- function(theta, x, y, epp = 1e-6) {
   }
   return( sqrt(diag(solve(t(Gi) %*% Gi))) )
 }
+
+# T.Statistics <- function(theta, SE) {
+#   return(theta/SE)
+# }
+
+#P.Values <- function
+
